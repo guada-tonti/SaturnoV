@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Infografía 3D interactiva y técnica de la misión Apollo 11 y la transformación física del cohete Saturn V a través de sus etapas.">
+  <meta name="theme-color" content="#06070a">
+  <title>Apollo 11 & Saturn V — Infografía 3D Interactiva</title>
+
+  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="./css/main.css?v=panel-swap-3">
+  <link rel="stylesheet" href="./css/timeline.css?v=mission-header-2">
+  <link rel="stylesheet" href="./css/telemetry.css">
+  <link rel="stylesheet" href="./css/inspector.css">
+  <link rel="stylesheet" href="./css/modal.css">
+
+  <!-- GSAP Animation Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Three.js ESM Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app" class="is-home">
+    <!-- Contenedor del Canvas Three.js 3D -->
+    <div id="canvas-container"></div>
+    <div class="vignette-overlay"></div>
+
+    <!-- Barra de cabecera superior -->
+    <header class="app-header">
+      <div class="header-left">
+        <button type="button" class="brand-badge brand-home-control" id="btn-home" aria-label="Volver al inicio y reiniciar misión">
+          <span class="brand-logo-text">SATURN V</span>
+          <span class="brand-subtext">APOLLO 11</span>
+        </button>
+      </div>
+      <div class="header-right">
+        <button class="header-icon-btn" id="btn-audio-toggle" title="Alternar audio espacial y telemetría" aria-label="Audio">
+          <svg class="icon-sound-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+          <svg class="icon-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Panel de Telemetría NASA y Descripción Histórica (Izquierda) -->
+    <div id="telemetry-container"></div>
+
+    <!-- Línea de Tiempo Vertical (Derecha) -->
+    <div id="timeline-container"></div>
+
+    <!-- Drawer del Inspector de Componentes -->
+    <div id="inspector-container"></div>
+
+    <!-- Modal Cutaway de Interior Presurizado (CM / LM) -->
+    <div id="cutaway-container"></div>
+
+    <!-- Modal Comparativa de Escala (110m vs 3.65m) -->
+    <div id="scale-container"></div>
+
+    <!-- Pantalla Hero Inicial (Introducción & CTA) -->
+    <div class="hero-overlay" id="hero-overlay">
+      <div class="hero-card">
+        <span class="hero-tag">NASA • 16-24 DE JULIO DE 1969</span>
+        <h1 class="hero-title">
+          SATURN V
+          <span>Apollo 11</span>
+        </h1>
+        <p class="hero-desc">
+          Explora la colosal máquina de 110 metros de altura que llevó a la humanidad a la Luna y descubre cómo se transformó físicamente a lo largo de cada etapa de la misión hasta que solo una pequeña cápsula regresó a la Tierra.
+        </p>
+
+        <button class="hero-cta-btn" id="btn-start-mission">
+          <span>COMENZAR MISIÓN</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+        </button>
+
+        <div class="hero-specs-summary">
+          <div class="hero-stat-item">
+            <span class="val">110.6 m</span>
+            <span class="lbl">Altura Total</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="val">2,970 t</span>
+            <span class="lbl">Masa de Despegue</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="val">34.5 MN</span>
+            <span class="lbl">Empuje S-IC</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="val">3 Astronautas</span>
+            <span class="lbl">Tripulación</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual" id="hero-visual" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Script principal de la aplicación -->
+  <script type="module" src="./js/app.js?v=home-layout-1"></script>
+</body>
+</html>

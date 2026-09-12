@@ -1,0 +1,220 @@
+/* ==========================================================================
+   INSPECTOR.CSS - EXPLORADOR Y FICHA TÉCNICA DE COMPONENTES 3D
+   ========================================================================== */
+
+#inspector-container {
+  position: absolute;
+  top: 84px;
+  left: 32px;
+  bottom: 32px;
+  width: 420px;
+  max-width: calc(100vw - 64px);
+  z-index: 20;
+  pointer-events: auto;
+  transform: translateX(-120%);
+  opacity: 0;
+  transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+}
+
+#inspector-container.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.inspector-drawer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.inspector-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--bg-glass-border);
+  padding-bottom: 12px;
+}
+
+.inspector-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+.inspector-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+}
+
+.inspector-close-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.inspector-close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* Barra de botones de selección de partes */
+.parts-selector-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.part-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.part-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.part-pill-btn.active {
+  background: var(--accent-cyan);
+  color: #06070a;
+  border-color: var(--accent-cyan);
+  font-weight: 700;
+  box-shadow: 0 0 10px var(--accent-cyan-glow);
+}
+
+/* Tarjeta de información */
+.inspector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.part-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.part-role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.part-name {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.part-description {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* Tabla de especificaciones de la pieza */
+.part-specs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.part-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 4px 0;
+}
+
+.part-spec-row:last-child {
+  border-bottom: none;
+}
+
+.part-spec-row .spec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.part-spec-row .spec-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Mini grid de estadísticas extras */
+.stats-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.mini-stat {
+  background: rgba(0, 229, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mini-stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.mini-stat-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.part-interior-cta .full-width {
+  width: 100%;
+}

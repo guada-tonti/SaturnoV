@@ -1,0 +1,360 @@
+/* ==========================================================================
+   MODAL.CSS - VISTAS MODALES (CUTAWAYS Y COMPARATIVA DE ESCALA)
+   ========================================================================== */
+
+#cutaway-container, #scale-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
+}
+
+#cutaway-container.visible, #scale-container.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.cutaway-modal-backdrop, .scale-modal-backdrop {
+  width: 100%;
+  height: 100%;
+  background: rgba(6, 7, 10, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 60px;
+}
+
+/* Panel Cutaway */
+.cutaway-panel {
+  width: 460px;
+  max-width: 100%;
+  background: var(--bg-surface-elevated);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 229, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cutaway-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--bg-glass-border);
+  padding-bottom: 12px;
+}
+
+.cutaway-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+.cutaway-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cutaway-switch-bar {
+  display: flex;
+  gap: 8px;
+}
+
+.cutaway-tab-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bg-glass-border);
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cutaway-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.cutaway-tab-btn.active {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.cutaway-human-metric {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.metric-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-card .metric-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.metric-card .metric-lbl {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cutaway-narrative {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.cutaway-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cutaway-feat-item {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent-cyan);
+}
+
+.cutaway-feat-item strong {
+  color: #ffffff;
+}
+
+.cutaway-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--bg-glass-border);
+  padding-top: 12px;
+}
+
+.cutaway-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ==========================================================================
+   PANEL DE ESTUDIO DE ESCALAS (110m vs 3.65m)
+   ========================================================================== */
+
+.scale-modal-backdrop {
+  justify-content: center;
+}
+
+.scale-panel {
+  width: 760px;
+  max-width: 100%;
+  max-height: 90vh;
+  background: var(--bg-surface-elevated);
+  border: 1px solid rgba(229, 169, 60, 0.35);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(229, 169, 60, 0.1);
+  border-radius: var(--radius-md);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.scale-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--bg-glass-border);
+  padding-bottom: 14px;
+}
+
+.scale-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--accent-amber);
+  text-transform: uppercase;
+}
+
+.scale-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.scale-hero-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+}
+
+.scale-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.scale-stat-box .stat-big {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.scale-stat-box .stat-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.scale-stat-box.highlight .stat-big {
+  color: var(--accent-amber);
+}
+
+.scale-stat-box.highlight-capsule .stat-big {
+  color: var(--accent-cyan);
+}
+
+.scale-stat-arrow {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.scale-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--bg-glass-border);
+}
+
+.scale-intro-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.scale-intro-text em {
+  color: var(--accent-cyan);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* Barras comparativas */
+.scale-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scale-bar-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 80px;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.scale-bar-row.is-highlight {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+.scale-bar-row.is-reference {
+  opacity: 0.75;
+}
+
+.scale-bar-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.scale-bar-label .bar-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scale-bar-label .bar-height-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.scale-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.scale-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+.scale-bar-mass {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.scale-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--bg-glass-border);
+  padding-top: 14px;
+}

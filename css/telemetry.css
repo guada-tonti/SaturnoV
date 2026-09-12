@@ -1,0 +1,227 @@
+/* ==========================================================================
+   TELEMETRY.CSS - PANEL DE TELEMETRÍA Y DATOS HISTÓRICOS NASA
+   ========================================================================== */
+
+.telemetry-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.telemetry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.telemetry-met-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--bg-glass-border);
+}
+
+.met-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.met-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.met-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.telemetry-phase-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--accent-amber);
+  background: rgba(229, 169, 60, 0.12);
+  border: 1px solid rgba(229, 169, 60, 0.25);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+/* Bloque del título */
+.telemetry-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.telemetry-stage-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.telemetry-stage-subtitle {
+  font-size: 13px;
+  color: var(--accent-cyan);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Descripción histórica */
+.telemetry-desc-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.telemetry-description {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.telemetry-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--accent-amber);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #94a3b8;
+}
+
+.note-icon {
+  font-size: 12px;
+  color: var(--accent-amber);
+}
+
+/* Grid de telemetría */
+.telemetry-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  border-top: 1px solid var(--bg-glass-border);
+  padding-top: 16px;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.spec-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.spec-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.spec-value.spec-date {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Botones de acción */
+.telemetry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.telem-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border: 1px solid var(--bg-glass-border);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.telem-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.telem-btn:active {
+  transform: translateY(0);
+}
+
+.telem-btn.telem-btn-interior {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: var(--accent-cyan);
+}
+
+.telem-btn.telem-btn-interior:hover {
+  background: rgba(0, 229, 255, 0.22);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 16px var(--accent-cyan-glow);
+}
+
+.telem-btn.telem-btn-scale {
+  background: rgba(229, 169, 60, 0.1);
+  border-color: rgba(229, 169, 60, 0.3);
+  color: var(--accent-amber);
+}
+
+.telem-btn.telem-btn-scale:hover {
+  background: rgba(229, 169, 60, 0.2);
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 16px var(--accent-amber-glow);
+}
