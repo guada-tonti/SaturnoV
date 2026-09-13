@@ -6,6 +6,7 @@
  */
 
 import { ROCKET_PARTS } from '../data/partsData.js';
+import { formatMissionTime } from './formatMissionTime.js';
 
 export class InspectorUI {
   constructor(containerElement, options = {}) {
@@ -152,7 +153,7 @@ export class InspectorUI {
     this.setElementText('#part-mass', partData.mass);
     this.setElementText('#part-thrust', partData.thrust || 'N/A');
     this.setElementText('#part-propellant', partData.propellant || 'N/A');
-    this.setElementText('#part-discard', partData.discardTime || 'N/A');
+    this.setElementText('#part-discard', formatMissionTime(partData.discardTime || 'N/A'));
 
     // Stats complementarias
     const statsContainer = this.container.querySelector('#part-stats-container');

@@ -305,7 +305,7 @@ export const MISSION_STAGES = [
     name: 'Viaje Translunar (PTC)',
     subtitle: 'Rotación pasiva térmica (barbecue roll) en el espacio profundo',
     met: 'T+ 055:00:00',
-    date: '18 de Julio de 1969',
+    date: '18 de Julio de 1969 - 20:32:00 UTC',
     altitude: '290,000 km',
     velocity: '4,200 km/h',
     distance: '290,000 km de la Tierra',

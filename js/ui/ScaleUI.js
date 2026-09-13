@@ -63,7 +63,7 @@ export class ScaleUI {
                     <span class="bar-height-tag">${item.height} m</span>
                   </div>
                   <div class="scale-bar-track">
-                    <div class="scale-bar-fill" style="width: ${heightPct}%; background-color: ${item.color || '#38bdf8'};"></div>
+                    <div class="scale-bar-fill" style="width: ${heightPct}%; background-color: var(--accent-cyan);"></div>
                   </div>
                   <div class="scale-bar-mass">
                     ${item.mass >= 1 ? `${item.mass} t` : `${item.mass * 1000} kg`}

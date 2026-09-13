@@ -4,6 +4,8 @@
  * las 24 etapas históricas de la misión Apollo 11.
  */
 
+import { formatMissionTime } from './formatMissionTime.js';
+
 export class TimelineUI {
   constructor(containerElement, stages, onStageSelected) {
     this.container = containerElement;
@@ -38,8 +40,8 @@ export class TimelineUI {
         </div>
 
         <div class="timeline-track" id="timeline-track">
-          <div class="timeline-line"></div>
           <div class="timeline-nodes-container" id="timeline-nodes">
+            <div class="timeline-line" aria-hidden="true"></div>
             ${this.stages.map((stage, idx) => `
               <div class="timeline-node ${idx === 0 ? 'active' : ''}" data-index="${idx}" id="tl-node-${idx}">
                 <div class="node-marker">
@@ -47,7 +49,7 @@ export class TimelineUI {
                   <div class="marker-ring"></div>
                 </div>
                 <div class="node-info">
-                  <span class="node-met">${stage.met}</span>
+                  <span class="node-met">${formatMissionTime(stage.met)}</span>
                   <span class="node-name">${stage.name}</span>
                 </div>
               </div>
@@ -139,11 +141,7 @@ export class TimelineUI {
     );
     this.stageClock.textContent = clock;
     this.stageClock.hidden = !clock;
-    this.stageMet.textContent = stage.met.replace(
-      /^(T[+-])\s*(\d+):(\d{2}):(\d{2})$/,
-      (_, sign, hours, minutes, seconds) =>
-        `${sign} ${String(Number(hours)).padStart(2, '0')}:${minutes}:${seconds}`
-    );
+    this.stageMet.textContent = formatMissionTime(stage.met);
     this.stageTimeLabel.textContent = stage.met.startsWith('T-')
       ? 'PARA EL DESPEGUE'
       : 'DESDE EL DESPEGUE';

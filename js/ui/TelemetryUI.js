@@ -19,6 +19,7 @@ export class TelemetryUI {
       <div class="telemetry-panel">
         <!-- Título principal del hito -->
         <div class="telemetry-title-block">
+          <p class="telemetry-stage-datetime" id="telem-stage-datetime"></p>
           <h1 class="telemetry-stage-title" id="telem-title">SATURN V</h1>
           <p class="telemetry-stage-subtitle" id="telem-subtitle">Complejo de Lanzamiento 39A (KSC, Florida)</p>
         </div>
@@ -103,6 +104,7 @@ export class TelemetryUI {
     if (!stageData) return;
 
     this.setElementText('#telem-title', stageData.name);
+    this.setElementText('#telem-stage-datetime', stageData.date);
     this.setElementText('#telem-subtitle', stageData.subtitle);
     this.setElementText('#telem-desc', stageData.description);
     this.setElementText('#telem-note-text', stageData.historicalNote || '');

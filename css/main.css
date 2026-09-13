@@ -17,9 +17,6 @@
 
   --accent-cyan: #00e5ff;
   --accent-cyan-glow: rgba(0, 229, 255, 0.35);
-  --accent-amber: #e5a93c;
-  --accent-amber-glow: rgba(229, 169, 60, 0.35);
-  --accent-orange: #ff5500;
 
   --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
   --font-heading: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -190,7 +187,11 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--bg-primary);
+  background:
+    radial-gradient(ellipse 30% 5% at 75% 90%, rgba(145, 158, 181, 0.13), transparent 100%),
+    radial-gradient(ellipse 34% 64% at 75% 65%, rgba(104, 120, 145, 0.12), transparent 100%),
+    radial-gradient(ellipse 60% 45% at 65% 100%, rgba(66, 82, 105, 0.08), transparent 100%),
+    var(--bg-primary);
   z-index: 50;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -216,14 +217,20 @@ html, body {
   gap: 24px;
 }
 
+@media (min-width: 1200px) {
+  .hero-card {
+    margin-left: clamp(24px, 4vw, 64px);
+  }
+}
+
 .hero-tag {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.3em;
-  color: var(--accent-amber);
+  color: var(--accent-cyan);
   text-transform: uppercase;
-  background: rgba(229, 169, 60, 0.1);
-  border: 1px solid rgba(229, 169, 60, 0.3);
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.3);
   padding: 6px 14px;
   border-radius: var(--radius-full);
 }
@@ -371,6 +378,7 @@ html, body {
 }
 
 .is-home #canvas-container {
+  background: transparent;
   pointer-events: none;
 }
 

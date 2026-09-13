@@ -128,7 +128,7 @@
 .part-role {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--accent-amber);
+  color: var(--accent-cyan);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }

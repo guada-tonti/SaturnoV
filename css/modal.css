@@ -187,8 +187,8 @@
   max-width: 100%;
   max-height: 90vh;
   background: var(--bg-surface-elevated);
-  border: 1px solid rgba(229, 169, 60, 0.35);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(229, 169, 60, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 50px rgba(0, 229, 255, 0.1);
   border-radius: var(--radius-md);
   padding: 32px;
   display: flex;
@@ -210,7 +210,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.2em;
-  color: var(--accent-amber);
+  color: var(--accent-cyan);
   text-transform: uppercase;
 }
 
@@ -255,7 +255,7 @@
 }
 
 .scale-stat-box.highlight .stat-big {
-  color: var(--accent-amber);
+  color: var(--accent-cyan);
 }
 
 .scale-stat-box.highlight-capsule .stat-big {

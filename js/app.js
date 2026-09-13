@@ -5,19 +5,19 @@
  * vistas de interior (cutaways) y comparativas de escala.
  */
 
-import { MISSION_STAGES } from './data/missionData.js';
+import { MISSION_STAGES } from './data/missionData.js?v=stage-datetime';
 import { ROCKET_PARTS } from './data/partsData.js';
-import { SceneManager } from './three/SceneManager.js';
+import { SceneManager } from './three/SceneManager.js?v=hero-aura';
 import { RocketBuilder } from './three/RocketBuilder.js';
 import { InteriorModels } from './three/InteriorModels.js';
 import { EffectsManager } from './three/EffectsManager.js';
 import { StageAnimator } from './three/StageAnimator.js';
 import { CameraChoreographer } from './three/CameraChoreographer.js';
-import { TimelineUI } from './ui/TimelineUI.js';
-import { TelemetryUI } from './ui/TelemetryUI.js';
-import { InspectorUI } from './ui/InspectorUI.js';
+import { TimelineUI } from './ui/TimelineUI.js?v=readable-time';
+import { TelemetryUI } from './ui/TelemetryUI.js?v=stage-datetime';
+import { InspectorUI } from './ui/InspectorUI.js?v=readable-time';
 import { CutawayUI } from './ui/CutawayUI.js';
-import { ScaleUI } from './ui/ScaleUI.js';
+import { ScaleUI } from './ui/ScaleUI.js?v=cyan-ui';
 import { AudioController } from './ui/AudioController.js';
 
 class SaturnVApp {
@@ -138,6 +138,9 @@ class SaturnVApp {
     const appElement = document.getElementById('app');
 
     heroVisual.appendChild(this.sceneManager.container);
+    this.missionBackground = this.sceneManager.scene.background;
+    this.sceneManager.scene.background = null;
+    this.sceneManager.renderer.setClearAlpha(0);
     this.sceneManager.controls.enabled = false;
     this.heroResizeObserver = new ResizeObserver(() => {
       if (!this.isMissionStarted) this.frameHeroRocket();
@@ -152,6 +155,8 @@ class SaturnVApp {
     if (startBtn && heroOverlay) {
       startBtn.addEventListener('click', () => {
         this.isMissionStarted = true;
+        this.sceneManager.scene.background = this.missionBackground;
+        this.sceneManager.renderer.setClearAlpha(1);
         this.heroResizeObserver.disconnect();
         appElement.prepend(this.sceneManager.container);
         appElement.classList.remove('is-home');
@@ -178,11 +183,23 @@ class SaturnVApp {
     box.getSize(size);
     const camera = this.sceneManager.camera;
     const halfFovY = camera.fov * Math.PI / 360;
-    const halfFovX = Math.atan(Math.tan(halfFovY) * camera.aspect);
-    // Una esfera envolvente conserva el cohete completo incluso con rotación pasiva.
-    const distance = size.length() * 0.5 / Math.sin(Math.min(halfFovY, halfFovX)) * 1.12;
+    // Reproduce la escala en píxeles del encuadre inicial de la misión.
+    const windowW = window.innerWidth;
+    const windowH = window.innerHeight;
+    const availW = Math.max(windowW - (windowW >= 1024 ? 724 : 0), windowW * 0.45);
+    const availH = Math.max(windowH - 114, 300);
+    const tanHalfFovY = Math.tan(halfFovY);
+    const missionDistance = Math.max(
+      Math.max(size.y, 2) / (2 * tanHalfFovY),
+      Math.max(size.x, size.z, 2) / (2 * tanHalfFovY * availW / availH)
+    ) * 1.15;
+    const distance = missionDistance * this.sceneManager.height / windowH;
     this.sceneManager.controls.target.copy(center);
-    camera.position.set(center.x + distance * 0.37, center.y + distance * 0.12, center.z + distance * 0.92);
+    camera.position.set(
+      center.x + distance * Math.sin(0.38) * Math.cos(0.12),
+      center.y + distance * Math.sin(0.12),
+      center.z + distance * Math.cos(0.38) * Math.cos(0.12)
+    );
     camera.lookAt(center);
     this.sceneManager.controls.update();
   }
