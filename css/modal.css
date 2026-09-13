@@ -21,6 +21,10 @@
   pointer-events: auto;
 }
 
+#cutaway-container.visible {
+  pointer-events: none;
+}
+
 .cutaway-modal-backdrop, .scale-modal-backdrop {
   width: 100%;
   height: 100%;
@@ -33,8 +37,16 @@
   padding: 40px 60px;
 }
 
+.cutaway-modal-backdrop {
+  pointer-events: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* Panel Cutaway */
 .cutaway-panel {
+  pointer-events: auto;
   width: 460px;
   max-width: 100%;
   background: var(--bg-surface-elevated);
@@ -357,4 +369,43 @@
   justify-content: flex-end;
   border-top: 1px solid var(--bg-glass-border);
   padding-top: 14px;
+}
+
+/* El interior reemplaza la ficha del componente en el panel derecho. */
+#cutaway-container {
+  position: absolute;
+  top: 84px;
+  right: 32px;
+  left: auto;
+  bottom: 32px;
+  width: 380px;
+  height: auto;
+  max-width: calc(100vw - 64px);
+  transition: none;
+}
+
+.cutaway-modal-backdrop {
+  padding: 0;
+  align-items: flex-start;
+}
+
+.cutaway-panel {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 24px;
+  background: var(--bg-surface);
+  border-color: var(--bg-glass-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+}
+
+.cutaway-back-btn { align-self: flex-start; }
+
+@media (max-width: 1024px) {
+  #cutaway-container { right: 20px; width: 320px; }
+}
+
+@media (max-width: 800px) {
+  #cutaway-container { top: 96px; }
 }

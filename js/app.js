@@ -6,23 +6,24 @@
  */
 
 import { MISSION_STAGES } from './data/missionData.js?v=stage-datetime';
-import { ROCKET_PARTS } from './data/partsData.js';
-import { SceneManager } from './three/SceneManager.js?v=hero-aura';
+import { SceneManager } from './three/SceneManager.js?v=experience-modes';
 import { RocketBuilder } from './three/RocketBuilder.js';
 import { InteriorModels } from './three/InteriorModels.js';
 import { EffectsManager } from './three/EffectsManager.js';
 import { StageAnimator } from './three/StageAnimator.js';
-import { CameraChoreographer } from './three/CameraChoreographer.js';
+import { CameraChoreographer } from './three/CameraChoreographer.js?v=experience-modes';
 import { TimelineUI } from './ui/TimelineUI.js?v=readable-time';
-import { TelemetryUI } from './ui/TelemetryUI.js?v=stage-datetime';
-import { InspectorUI } from './ui/InspectorUI.js?v=readable-time';
-import { CutawayUI } from './ui/CutawayUI.js';
-import { ScaleUI } from './ui/ScaleUI.js?v=cyan-ui';
+import { TelemetryUI } from './ui/TelemetryUI.js?v=experience-modes';
+import { InspectorUI } from './ui/InspectorUI.js?v=white-actions';
+import { CutawayUI } from './ui/CutawayUI.js?v=component-interior';
+import { ScaleUI } from './ui/ScaleUI.js?v=experience-modes';
 import { AudioController } from './ui/AudioController.js';
 
 class SaturnVApp {
   constructor() {
     this.stageIndex = 0;
+    this.experienceMode = 'timeline';
+    this.selectedComponent = null;
     this.isMissionStarted = false;
     this.isInspectorOpen = false;
     this.isCutawayOpen = false;
@@ -37,6 +38,7 @@ class SaturnVApp {
     const timelineContainer = document.getElementById('timeline-container');
     const telemetryContainer = document.getElementById('telemetry-container');
     const inspectorContainer = document.getElementById('inspector-container');
+    inspectorContainer.hidden = true;
     const cutawayContainer = document.getElementById('cutaway-container');
     const scaleContainer = document.getElementById('scale-container');
 
@@ -49,6 +51,7 @@ class SaturnVApp {
     // 4. Construcción del Cohete Modular
     this.rocketBuilder = new RocketBuilder();
     this.parts = this.rocketBuilder.buildCompleteRocket(this.sceneManager.rocketRoot);
+    this.completeRocketState = this.captureRocketState();
 
     // 5. Modelos interiores para Cutaways
     this.interiorModels = new InteriorModels();
@@ -74,27 +77,40 @@ class SaturnVApp {
     );
 
     // 8. Interfaz de Usuario
-    this.telemetryUI = new TelemetryUI(telemetryContainer, {
-      onExploreParts: () => this.openInspector('cm'),
-      onViewInterior: () => this.openCutaway('cm'),
-      onViewScale: () => this.openScaleModal()
-    });
+    this.telemetryUI = new TelemetryUI(telemetryContainer);
 
     this.timelineUI = new TimelineUI(timelineContainer, MISSION_STAGES, (stageData, index) => {
       this.onTimelineStageChange(stageData, index);
     });
 
     this.inspectorUI = new InspectorUI(inspectorContainer, {
+      detailContainer: document.getElementById('component-detail-container'),
       onPartSelected: (partData) => {
+        if (this.experienceMode !== 'components') return;
+        if (this.isCutawayOpen) this.closeCutaway(false);
+        if (!partData) {
+          this.selectedComponent = null;
+          this.cancelRocketAnimations();
+          this.restoreRocketState(this.completeRocketState);
+          this.sceneManager.camera.fov = 38;
+          this.sceneManager.camera.updateProjectionMatrix();
+          this.cameraChoreographer.autoFrameStage(MISSION_STAGES[0], 1.8);
+          this.cameraChoreographer.currentStageData = null;
+          this.cameraChoreographer.currentActiveParts = null;
+          return;
+        }
+        this.selectedComponent = partData.id;
+        // El LM está dentro del SLA: abrir sus pétalos permite inspeccionarlo.
+        this.parts.sla.userData.petals.forEach(petal => {
+          window.gsap.killTweensOf(petal.rotation);
+          petal.rotation.z = partData.id === 'lm' ? 1.4 : 0;
+        });
         this.cameraChoreographer.focusOnPart(partData);
-      },
-      onCloseInspector: () => {
-        this.isInspectorOpen = false;
-        this.onTimelineStageChange(MISSION_STAGES[this.stageIndex], this.stageIndex);
       },
       onOpenCutaway: (partId) => {
         this.openCutaway(partId);
-      }
+      },
+      onViewScale: () => this.openScaleModal()
     });
 
     this.cutawayUI = new CutawayUI(cutawayContainer, {
@@ -120,6 +136,8 @@ class SaturnVApp {
     // 10. Pantalla de Bienvenida / Hero CTA
     this.setupHeroScreen();
     this.setupAudioButton();
+    document.getElementById('btn-mode-timeline').addEventListener('click', () => this.setExperienceMode('timeline'));
+    document.getElementById('btn-mode-components').addEventListener('click', () => this.setExperienceMode('components'));
 
     // 11. Bucle de Renderizado
     this.lastTime = performance.now();
@@ -221,6 +239,7 @@ class SaturnVApp {
   }
 
   onTimelineStageChange(stageData, index) {
+    if (this.experienceMode !== 'timeline') return;
     this.stageIndex = index;
 
     // Si había un cutaway abierto, cerrarlo
@@ -236,6 +255,8 @@ class SaturnVApp {
     }
 
     // Transformación 3D de la nave
+    this.cancelRocketAnimations();
+    this.restoreRocketState(this.completeRocketState);
     this.stageAnimator.transitionToStage(stageData);
 
     // Auto-Framing automático e inteligente según el tamaño de la nave activa
@@ -246,17 +267,20 @@ class SaturnVApp {
   }
 
   openInspector(partId) {
+    if (this.experienceMode !== 'components') return;
     this.isInspectorOpen = true;
     this.inspectorUI.show(partId);
   }
 
   openCutaway(partId = 'cm') {
+    if (this.experienceMode !== 'components') return;
+    document.getElementById('component-detail-container').hidden = true;
     this.isCutawayOpen = true;
     this.sceneManager.isCutawayActive = true;
+    this.sceneManager.setComponentPicking(false);
 
     // Ocultar modelo exterior para mostrar interior
-    this.parts.cm.visible = false;
-    this.parts.lm.visible = false;
+    this.sceneManager.rocketRoot.visible = false;
 
     this.setCutawayModule(partId);
     this.cutawayUI.show(partId);
@@ -275,30 +299,98 @@ class SaturnVApp {
   }
 
   closeCutaway(restoreCamera = true) {
+    this.cutawayUI.hide();
+    document.getElementById('component-detail-container').hidden = false;
     this.isCutawayOpen = false;
     this.sceneManager.isCutawayActive = false;
 
     this.cmCutaway.visible = false;
     this.lmCutaway.visible = false;
 
-    // Restaurar visibilidad según la etapa actual
-    this.stageAnimator.transitionToStage(MISSION_STAGES[this.stageIndex], 0.5);
-
-    if (restoreCamera) {
-      const stageData = MISSION_STAGES[this.stageIndex];
-      if (stageData.camera) {
-        this.cameraChoreographer.moveTo(
-          stageData.camera.position,
-          stageData.camera.target,
-          1.5,
-          stageData.camera.fov
-        );
-      }
-    }
+    this.restoreRocketState(this.completeRocketState);
+    this.sceneManager.setComponentPicking(this.experienceMode === 'components');
+    if (restoreCamera) this.inspectorUI.selectPart(this.selectedComponent);
   }
 
   openScaleModal() {
+    if (this.experienceMode !== 'components') return;
     this.scaleUI.show();
+  }
+
+  captureRocketState() {
+    const state = [];
+    this.sceneManager.rocketRoot.traverse(object => {
+      state.push({ object, position: object.position.clone(), quaternion: object.quaternion.clone(),
+        scale: object.scale.clone(), visible: object.visible });
+    });
+    return state;
+  }
+
+  restoreRocketState(state) {
+    state.forEach(({ object, position, quaternion, scale, visible }) => {
+      object.position.copy(position);
+      object.quaternion.copy(quaternion);
+      object.scale.copy(scale);
+      object.visible = visible;
+    });
+    this.sceneManager.rocketRoot.updateMatrixWorld(true);
+  }
+
+  cancelRocketAnimations() {
+    this.sceneManager.rocketRoot.traverse(object => {
+      window.gsap.killTweensOf([object.position, object.rotation, object.scale]);
+    });
+  }
+
+  setExperienceMode(mode) {
+    if (!this.isMissionStarted || mode === this.experienceMode) return;
+    this.cancelRocketAnimations();
+    if (this.isCutawayOpen) {
+      this.cutawayUI.hide();
+      this.closeCutaway(false);
+    }
+    this.scaleUI.hide();
+    if (mode === 'components') {
+      this.resumeAutoplay = this.timelineUI.isPlaying;
+      this.timelineUI.stopAutoPlay();
+      this.missionFov = this.sceneManager.camera.fov;
+      this.restoreRocketState(this.completeRocketState);
+      this.effectsManager.setStageEffects(null, this.parts);
+    }
+    this.experienceMode = mode;
+    const components = mode === 'components';
+    this.sceneManager.scene.background = components ? null : this.missionBackground;
+    this.sceneManager.renderer.setClearAlpha(components ? 0 : 1);
+    document.getElementById('app').classList.toggle('is-components', components);
+    document.getElementById('timeline-container').hidden = components;
+    document.getElementById('telemetry-container').hidden = components;
+    document.getElementById('inspector-container').hidden = !components;
+    this.sceneManager.setComponentPicking(components);
+    ['timeline', 'components'].forEach(name => {
+      const button = document.getElementById(`btn-mode-${name}`);
+      button.classList.toggle('active', name === mode);
+      button.setAttribute('aria-pressed', String(name === mode));
+    });
+    this.isInspectorOpen = components;
+    if (components) {
+      this.inspectorUI.show(this.selectedComponent);
+      // Presentar primero la anatomía completa; la selección siguiente enfoca la pieza.
+      this.sceneManager.camera.fov = 38;
+      this.sceneManager.camera.updateProjectionMatrix();
+      this.cameraChoreographer.autoFrameStage(MISSION_STAGES[0], 1.8);
+      this.cameraChoreographer.currentStageData = null;
+      this.cameraChoreographer.currentActiveParts = null;
+    } else {
+      this.inspectorUI.hide();
+      const stage = MISSION_STAGES[this.stageIndex];
+      this.restoreRocketState(this.completeRocketState);
+      this.stageAnimator.transitionToStage(stage, 0);
+      this.effectsManager.setStageEffects(stage, this.parts);
+      this.sceneManager.camera.fov = this.missionFov;
+      this.sceneManager.camera.updateProjectionMatrix();
+      this.cameraChoreographer.autoFrameStage(stage, 1.8);
+      if (this.resumeAutoplay && this.stageIndex < MISSION_STAGES.length - 1) this.timelineUI.startAutoPlay();
+    }
   }
 
   animate() {

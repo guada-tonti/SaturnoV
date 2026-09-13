@@ -94,6 +94,47 @@ html, body {
 }
 
 /* Barra superior de estado (Header) */
+.experience-nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 24px;
+  pointer-events: auto;
+}
+
+.experience-mode {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  padding: 8px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.experience-mode.active {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+}
+
+.experience-mode:focus-visible {
+  outline: 1px solid var(--accent-cyan);
+  outline-offset: 4px;
+}
+
+@media (max-width: 800px) {
+  .app-header:has(.experience-nav) { height: 84px; align-items: flex-start; padding-top: 12px; }
+  .experience-nav { top: 50px; gap: 16px; }
+  .experience-mode { font-size: 10px; }
+  #app:not(.is-home) #timeline-container,
+  #app:not(.is-home) #telemetry-container,
+  #app.is-components #inspector-container { top: 96px; }
+}
+
 .app-header {
   position: absolute;
   top: 0;
@@ -181,17 +222,26 @@ html, body {
    PANTALLA HERO INICIAL (INTRODUCCIÓN & CTA)
    ========================================================================== */
 
+.hero-overlay,
+#app.is-components #canvas-container {
+  background:
+    radial-gradient(ellipse 30% 5% at var(--aura-center, 75%) 90%, rgba(145, 158, 181, 0.13), transparent 100%),
+    radial-gradient(ellipse 34% 64% at var(--aura-center, 75%) 65%, rgba(104, 120, 145, 0.12), transparent 100%),
+    radial-gradient(ellipse 60% 45% at var(--aura-base, 65%) 100%, rgba(66, 82, 105, 0.08), transparent 100%),
+    var(--bg-primary);
+}
+
+#app.is-components #canvas-container {
+  --aura-center: 50%;
+  --aura-base: 50%;
+}
+
 .hero-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(ellipse 30% 5% at 75% 90%, rgba(145, 158, 181, 0.13), transparent 100%),
-    radial-gradient(ellipse 34% 64% at 75% 65%, rgba(104, 120, 145, 0.12), transparent 100%),
-    radial-gradient(ellipse 60% 45% at 65% 100%, rgba(66, 82, 105, 0.08), transparent 100%),
-    var(--bg-primary);
   z-index: 50;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

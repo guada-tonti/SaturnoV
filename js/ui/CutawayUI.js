@@ -20,23 +20,14 @@ export class CutawayUI {
     this.container.innerHTML = `
       <div class="cutaway-modal-backdrop" id="cutaway-backdrop">
         <div class="cutaway-panel">
+          <button class="telem-btn cutaway-back-btn" id="cutaway-close-btn">← Volver al componente</button>
           <div class="cutaway-header">
             <div class="cutaway-title-wrap">
               <span class="cutaway-badge">VISTA EN CORTE (CUTAWAY)</span>
               <h2 class="cutaway-title" id="cutaway-title">INTERIOR DEL COMMAND MODULE</h2>
             </div>
-            <button class="inspector-close-btn" id="cutaway-close-btn" aria-label="Cerrar">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
           </div>
 
-          <!-- Selector de nave tripulada -->
-          <div class="cutaway-switch-bar">
-            <button class="cutaway-tab-btn active" data-target="cm">COMMAND MODULE (COLUMBIA)</button>
-            <button class="cutaway-tab-btn" data-target="lm">LUNAR MODULE (EAGLE)</button>
-          </div>
-
-          <!-- Información y contraste de escala humana -->
           <div class="cutaway-body">
             <div class="cutaway-human-metric">
               <div class="metric-card">
@@ -64,7 +55,6 @@ export class CutawayUI {
 
           <div class="cutaway-footer">
             <span class="cutaway-hint">💡 Puedes rotar y hacer zoom libremente en el modelo 3D con el ratón</span>
-            <button class="telem-btn" id="cutaway-exit-btn">Volver a la Misión</button>
           </div>
         </div>
       </div>
@@ -87,13 +77,7 @@ export class CutawayUI {
       }
     });
 
-    const tabs = this.container.querySelectorAll('.cutaway-tab-btn');
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const target = tab.getAttribute('data-target');
-        this.setModule(target);
-      });
-    });
+
   }
 
   show(partId = 'cm') {
@@ -107,10 +91,6 @@ export class CutawayUI {
 
   setModule(partId) {
     this.currentPartId = partId;
-
-    this.container.querySelectorAll('.cutaway-tab-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.getAttribute('data-target') === partId);
-    });
 
     if (partId === 'cm') {
       this.setElementText('#cutaway-title', 'INTERIOR DEL COMMAND MODULE "COLUMBIA"');

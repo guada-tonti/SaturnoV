@@ -142,6 +142,8 @@ export class CameraChoreographer {
     }
 
     this.isAnimating = true;
+    // Un cambio de modo/foco reemplaza la transición anterior, no la superpone.
+    gsap.killTweensOf([this.camera.position, this.controls.target, this.camera]);
 
     // Animación de la posición de la cámara
     gsap.to(this.camera.position, {

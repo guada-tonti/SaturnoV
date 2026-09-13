@@ -13,11 +13,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Estilos CSS -->
-  <link rel="stylesheet" href="./css/main.css?v=hero-aura">
-  <link rel="stylesheet" href="./css/timeline.css?v=cyan-ui">
-  <link rel="stylesheet" href="./css/telemetry.css?v=cyan-ui">
-  <link rel="stylesheet" href="./css/inspector.css?v=cyan-ui">
-  <link rel="stylesheet" href="./css/modal.css?v=cyan-ui">
+  <link rel="stylesheet" href="./css/main.css?v=components-aura">
+  <link rel="stylesheet" href="./css/timeline.css?v=timer-spacing">
+  <link rel="stylesheet" href="./css/telemetry.css?v=rocket-selector">
+  <link rel="stylesheet" href="./css/inspector.css?v=left-scale">
+  <link rel="stylesheet" href="./css/modal.css?v=right-interior">
 
   <!-- GSAP Animation Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -46,6 +46,10 @@
           <span class="brand-subtext">APOLLO 11</span>
         </button>
       </div>
+      <nav class="experience-nav" aria-label="Modo de experiencia">
+        <button type="button" class="experience-mode active" id="btn-mode-timeline" aria-pressed="true">Cronología</button>
+        <button type="button" class="experience-mode" id="btn-mode-components" aria-pressed="false">Explorar componentes</button>
+      </nav>
       <div class="header-right">
         <button class="header-icon-btn" id="btn-audio-toggle" title="Alternar audio espacial y telemetría" aria-label="Audio">
           <svg class="icon-sound-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -69,6 +73,7 @@
 
     <!-- Drawer del Inspector de Componentes -->
     <div id="inspector-container"></div>
+    <div id="component-detail-container" hidden></div>
 
     <!-- Modal Cutaway de Interior Presurizado (CM / LM) -->
     <div id="cutaway-container"></div>
@@ -117,6 +122,6 @@
   </div>
 
   <!-- Script principal de la aplicación -->
-  <script type="module" src="./js/app.js?v=hero-aura"></script>
+  <script type="module" src="./js/app.js?v=white-actions"></script>
 </body>
 </html>

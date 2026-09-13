@@ -5,12 +5,8 @@
  */
 
 export class TelemetryUI {
-  constructor(containerElement, options = {}) {
+  constructor(containerElement) {
     this.container = containerElement;
-    this.onExploreParts = options.onExploreParts || null;
-    this.onViewInterior = options.onViewInterior || null;
-    this.onViewScale = options.onViewScale || null;
-
     this.render();
   }
 
@@ -63,41 +59,9 @@ export class TelemetryUI {
           </div>
         </div>
 
-        <!-- Acciones contextuales -->
-        <div class="telemetry-actions">
-          <button class="telem-btn" id="btn-inspect-parts">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            Explorar Componentes
-          </button>
-          <button class="telem-btn telem-btn-interior" id="btn-view-interior" style="display:none">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            Ver Interior (Cutaway)
-          </button>
-          <button class="telem-btn telem-btn-scale" id="btn-view-scale">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 15 6 6m-6-6v4.8m0-4.8h4.8M9 9 3 3m6 6V4.2M9 9H4.2"/></svg>
-            Comparar Escala
-          </button>
-        </div>
       </div>
     `;
 
-    this.bindEvents();
-  }
-
-  bindEvents() {
-    const btnInspect = this.container.querySelector('#btn-inspect-parts');
-    const btnInterior = this.container.querySelector('#btn-view-interior');
-    const btnScale = this.container.querySelector('#btn-view-scale');
-
-    if (btnInspect && this.onExploreParts) {
-      btnInspect.addEventListener('click', () => this.onExploreParts());
-    }
-    if (btnInterior && this.onViewInterior) {
-      btnInterior.addEventListener('click', () => this.onViewInterior());
-    }
-    if (btnScale && this.onViewScale) {
-      btnScale.addEventListener('click', () => this.onViewScale());
-    }
   }
 
   updateStage(stageData) {
@@ -115,23 +79,6 @@ export class TelemetryUI {
     this.setElementText('#telem-height', stageData.vehicleHeight);
     this.setElementText('#telem-date', stageData.date);
 
-    // Botón de ver interior disponible cuando la etapa involucra Command Module o Lunar Module
-    const btnInterior = this.container.querySelector('#btn-view-interior');
-    if (btnInterior) {
-      const showInterior = stageData.id >= 7 && stageData.id <= 24;
-      btnInterior.style.display = showInterior ? 'inline-flex' : 'none';
-      if (stageData.id >= 16 && stageData.id <= 18) {
-        btnInterior.innerHTML = `
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-          Ver Interior Lunar Module
-        `;
-      } else {
-        btnInterior.innerHTML = `
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-          Ver Interior Columbia
-        `;
-      }
-    }
   }
 
   setElementText(selector, text) {

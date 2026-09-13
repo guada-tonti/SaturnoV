@@ -21,6 +21,16 @@
   opacity: 1;
 }
 
+#app.is-components #inspector-container {
+  width: 360px;
+  z-index: 10;
+  transition: none;
+}
+
+@media (max-width: 1024px) {
+  #app.is-components #inspector-container { left: 20px; }
+}
+
 .inspector-drawer {
   height: 100%;
   display: flex;
@@ -61,55 +71,63 @@
   color: #ffffff;
 }
 
-.inspector-close-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--bg-glass-border);
-  color: var(--text-secondary);
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Selector vectorial de la anatomía del vehículo. */
+.rocket-selector {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(100%, calc((100vh - 280px) * 300 / 520));
+  aspect-ratio: 300 / 520;
+}
+
+.rocket-selector-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rocket-section {
+  fill: #a7b2be;
+  stroke: var(--bg-surface-elevated);
+  stroke-width: 1.5;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: fill var(--transition-fast);
 }
 
-.inspector-close-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+.rocket-section:hover { fill: #e2e8f0; }
+.rocket-section.active { fill: var(--accent-cyan); }
+.rocket-section:focus {
+  outline: none;
 }
 
-/* Barra de botones de selección de partes */
-.parts-selector-bar {
+.rocket-section:focus-visible {
+  stroke: var(--accent-cyan);
+  stroke-width: 3;
+}
+
+.rocket-selection-label {
+  position: absolute;
+  left: 47%;
+  width: 53%;
+  transform: translateY(-50%);
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 12px;
+  border-left: 1px solid var(--accent-cyan);
+  pointer-events: none;
 }
 
-.part-pill-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--bg-glass-border);
-  color: var(--text-secondary);
+.rocket-selection-code {
+  color: var(--accent-cyan);
   font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  font-size: 11px;
+  letter-spacing: .1em;
 }
 
-.part-pill-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-.part-pill-btn.active {
-  background: var(--accent-cyan);
-  color: #06070a;
-  border-color: var(--accent-cyan);
-  font-weight: 700;
-  box-shadow: 0 0 10px var(--accent-cyan-glow);
+.rocket-selection-name {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 /* Tarjeta de información */
@@ -218,3 +236,31 @@
 .part-interior-cta .full-width {
   width: 100%;
 }
+
+/* Ficha técnica en el mismo lateral que la información de Cronología. */
+#component-detail-container {
+  position: absolute;
+  top: 84px;
+  right: 32px;
+  bottom: 32px;
+  width: 380px;
+  max-width: calc(100vw - 64px);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+  #component-detail-container { right: 20px; width: 320px; }
+}
+
+@media (max-width: 800px) {
+  #component-detail-container { top: 96px; }
+}
+
+.is-home #component-detail-container { display: none; }
+
+.rocket-selection-label[hidden] { display: none; }
+
+#rocket-overview[hidden] { display: none; }
+
+#btn-inspector-scale { margin-top: auto; flex-shrink: 0; }

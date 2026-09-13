@@ -74,7 +74,7 @@ export class ScaleUI {
           </div>
 
           <div class="scale-footer">
-            <button class="telem-btn" id="scale-exit-btn">Entendido, Volver a la Misión</button>
+            <button class="telem-btn" id="scale-exit-btn">Entendido, Volver a Componentes</button>
           </div>
         </div>
       </div>

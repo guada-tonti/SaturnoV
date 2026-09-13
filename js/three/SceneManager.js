@@ -32,6 +32,7 @@ export class SceneManager {
     this.isUserInteracting = false;
     this.idleRotationSpeed = 0.0012;
     this.isCutawayActive = false;
+    this.componentPickingEnabled = false;
     this.clock = new THREE.Clock();
 
     this.init();
@@ -84,9 +85,13 @@ export class SceneManager {
 
     this.controls.addEventListener('start', () => {
       this.isUserInteracting = true;
+      this.isDragging = true;
+      this.renderer.domElement.style.cursor = 'grabbing';
     });
 
     this.controls.addEventListener('end', () => {
+      this.isDragging = false;
+      this.renderer.domElement.style.cursor = 'grab';
       clearTimeout(this.idleTimeout);
       this.idleTimeout = setTimeout(() => {
         this.isUserInteracting = false;
@@ -98,7 +103,10 @@ export class SceneManager {
 
     // 6. Eventos
     window.addEventListener('resize', this.onWindowResize.bind(this));
-    this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    this.renderer.domElement.addEventListener('pointerdown', event => {
+      this.pointerStart = { x: event.clientX, y: event.clientY };
+    });
+    this.renderer.domElement.addEventListener('pointerup', this.onPointerUp.bind(this));
     this.renderer.domElement.addEventListener('pointermove', this.onPointerMove.bind(this));
     this.renderer.domElement.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
 
@@ -203,32 +211,40 @@ export class SceneManager {
   }
 
   onPointerMove(event) {
+    if (!this.componentPickingEnabled || this.isCutawayActive || this.isDragging) {
+      this.renderer.domElement.style.cursor = this.isDragging ? 'grabbing' : 'grab';
+      return;
+    }
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / this.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / this.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.rocketRoot.children, true);
+    const intersects = this.raycaster.intersectObjects(this.rocketRoot.children, true)
+      .filter(hit => this.isObjectVisible(hit.object));
 
     if (intersects.length > 0) {
       let hitPart = this.findPartParent(intersects[0].object);
       if (hitPart && this.onPartHovered) {
         this.onPartHovered(hitPart.userData.partId || null, event);
       }
-      this.renderer.domElement.style.cursor = hitPart ? 'pointer' : 'default';
+      this.renderer.domElement.style.cursor = hitPart ? 'pointer' : 'grab';
     } else {
       if (this.onPartHovered) this.onPartHovered(null, event);
-      this.renderer.domElement.style.cursor = 'default';
+      this.renderer.domElement.style.cursor = 'grab';
     }
   }
 
-  onPointerDown(event) {
+  onPointerUp(event) {
+    if (!this.componentPickingEnabled || this.isCutawayActive || !this.pointerStart ||
+      Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) > 5) return;
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / this.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / this.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.rocketRoot.children, true);
+    const intersects = this.raycaster.intersectObjects(this.rocketRoot.children, true)
+      .filter(hit => this.isObjectVisible(hit.object));
 
     if (intersects.length > 0) {
       const hitPart = this.findPartParent(intersects[0].object);
@@ -247,6 +263,20 @@ export class SceneManager {
       curr = curr.parent;
     }
     return null;
+  }
+
+  isObjectVisible(object) {
+    for (let parent = object; parent; parent = parent.parent) {
+      if (!parent.visible) return false;
+    }
+    return true;
+  }
+
+  setComponentPicking(enabled) {
+    this.componentPickingEnabled = enabled;
+    this.pointerStart = null;
+    this.renderer.domElement.style.cursor = 'grab';
+    if (!enabled && this.onPartHovered) this.onPartHovered(null);
   }
 
   onWheel(event) {
