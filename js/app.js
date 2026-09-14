@@ -6,13 +6,14 @@
  */
 
 import { MISSION_STAGES } from './data/missionData.js?v=stage-datetime';
-import { SceneManager } from './three/SceneManager.js?v=experience-modes';
-import { RocketBuilder } from './three/RocketBuilder.js';
+import { SceneManager } from './three/SceneManager.js?v=deterministic-stages';
+import { RocketBuilder } from './three/RocketBuilder.js?v=les-shape';
 import { InteriorModels } from './three/InteriorModels.js';
-import { EffectsManager } from './three/EffectsManager.js';
-import { StageAnimator } from './three/StageAnimator.js';
-import { CameraChoreographer } from './three/CameraChoreographer.js?v=experience-modes';
-import { TimelineUI } from './ui/TimelineUI.js?v=readable-time';
+import { EffectsManager } from './three/EffectsManager.js?v=attached-effects';
+import { TimelineTransitions } from './three/TimelineTransitions.js?v=parachutes-up';
+import { StageAnimator } from './three/StageAnimator.js?v=reentry-orientation';
+import { CameraChoreographer } from './three/CameraChoreographer.js?v=state-navigation';
+import { TimelineUI } from './ui/TimelineUI.js?v=manual-navigation';
 import { TelemetryUI } from './ui/TelemetryUI.js?v=experience-modes';
 import { InspectorUI } from './ui/InspectorUI.js?v=white-actions';
 import { CutawayUI } from './ui/CutawayUI.js?v=component-interior';
@@ -76,6 +77,8 @@ class SaturnVApp {
       this.sceneManager
     );
 
+    this.timelineTransitions = new TimelineTransitions(this.stageAnimator, this.cameraChoreographer, MISSION_STAGES);
+
     // 8. Interfaz de Usuario
     this.telemetryUI = new TelemetryUI(telemetryContainer);
 
@@ -100,11 +103,12 @@ class SaturnVApp {
           return;
         }
         this.selectedComponent = partData.id;
-        // El LM está dentro del SLA: abrir sus pétalos permite inspeccionarlo.
+        this.parts.sla.userData.closedCover.visible = partData.id !== 'lm';
         this.parts.sla.userData.petals.forEach(petal => {
           window.gsap.killTweensOf(petal.rotation);
-          petal.rotation.z = partData.id === 'lm' ? 1.4 : 0;
+          petal.visible = false;
         });
+        this.parts.sm.userData.spsEngine.visible = partData.id !== 'lm';
         this.cameraChoreographer.focusOnPart(partData);
       },
       onOpenCutaway: (partId) => {
@@ -254,13 +258,7 @@ class SaturnVApp {
       this.audio.playQuindarBeep(true);
     }
 
-    // Transformación 3D de la nave
-    this.cancelRocketAnimations();
-    this.restoreRocketState(this.completeRocketState);
-    this.stageAnimator.transitionToStage(stageData);
-
-    // Auto-Framing automático e inteligente según el tamaño de la nave activa
-    this.cameraChoreographer.autoFrameStage(stageData, 1.8);
+    this.timelineTransitions.transitionTo(index);
 
     // Actualizar datos de telemetría NASA
     this.telemetryUI.updateStage(stageData);
@@ -337,9 +335,7 @@ class SaturnVApp {
   }
 
   cancelRocketAnimations() {
-    this.sceneManager.rocketRoot.traverse(object => {
-      window.gsap.killTweensOf([object.position, object.rotation, object.scale]);
-    });
+    this.timelineTransitions?.cancel();
   }
 
   setExperienceMode(mode) {
@@ -382,13 +378,10 @@ class SaturnVApp {
       this.cameraChoreographer.currentActiveParts = null;
     } else {
       this.inspectorUI.hide();
-      const stage = MISSION_STAGES[this.stageIndex];
       this.restoreRocketState(this.completeRocketState);
-      this.stageAnimator.transitionToStage(stage, 0);
-      this.effectsManager.setStageEffects(stage, this.parts);
       this.sceneManager.camera.fov = this.missionFov;
       this.sceneManager.camera.updateProjectionMatrix();
-      this.cameraChoreographer.autoFrameStage(stage, 1.8);
+      this.timelineTransitions.setStageState(this.stageIndex, 1.8);
       if (this.resumeAutoplay && this.stageIndex < MISSION_STAGES.length - 1) this.timelineUI.startAutoPlay();
     }
   }

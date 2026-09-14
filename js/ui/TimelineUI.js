@@ -86,6 +86,7 @@ export class TimelineUI {
     this.nodesContainer.querySelectorAll('.timeline-node').forEach((nodeEl) => {
       nodeEl.addEventListener('click', () => {
         const index = parseInt(nodeEl.getAttribute('data-index'), 10);
+        this.stopAutoPlay();
         this.goToStage(index);
       });
     });
@@ -95,8 +96,8 @@ export class TimelineUI {
     const nextBtn = this.container.querySelector('#tl-next-btn');
     const playBtn = this.container.querySelector('#tl-play-btn');
 
-    prevBtn.addEventListener('click', () => this.previousStage());
-    nextBtn.addEventListener('click', () => this.nextStage());
+    prevBtn.addEventListener('click', () => { this.stopAutoPlay(); this.previousStage(); });
+    nextBtn.addEventListener('click', () => { this.stopAutoPlay(); this.nextStage(); });
     playBtn.addEventListener('click', () => this.toggleAutoPlay());
 
 

@@ -34,22 +34,40 @@ export class StageAnimator {
   /* =========================================================================
    * TRANSICIÓN PRINCIPAL A UNA ETAPA ESPECÍFICA (1 a 24)
    * ========================================================================= */
-  transitionToStage(stageData, duration = 1.6) {
+  transitionToStage(stageData, duration = 1.6, updateEffects = true) {
     if (!stageData) return;
     this.currentStageIndex = stageData.id;
 
     // Efectos visuales de motores y telemetría
-    if (this.effectsManager) {
+    if (updateEffects && this.effectsManager) {
       this.effectsManager.setStageEffects(stageData, this.parts);
     }
 
     const stageId = stageData.id;
+    if (stageId === 16 && this.parts.lm) {
+      this.parts.lm.position.set(-3, 15, 3);
+      this.parts.lm.rotation.set(0.2, 0.3, 0);
+    }
 
     // Reset de pétalos SLA a posición cerrada si no estamos en transposición
     this.resetSLAPetals(stageId < 10);
 
     // Reset de patas del LM por defecto
     this.setLMLegsDeployment(stageId >= 15);
+
+    // Desde el acoplamiento, la transposición del CSM ya está completada.
+    if (stageId >= 11 && stageId <= 15) {
+      const cmY = stageId === 11 ? 24.5 - 1.115 : stageId === 12 ? 15.80 : 18.55;
+      if (this.parts.cm) {
+        this.parts.cm.position.set(0, cmY, 0);
+        this.parts.cm.rotation.set(Math.PI, 0, 0);
+      }
+      if (this.parts.sm) {
+        this.parts.sm.position.set(0, cmY + 2.23, 0);
+        this.parts.sm.rotation.set(Math.PI, 0, 0);
+      }
+      if (this.parts.lm) this.parts.lm.position.set(0, stageId <= 12 ? 13.25 : 16, 0);
+    }
 
     // 1. Etapa 1 a 3: Cohete completo ensamblado (Plataforma, Despegue y Max Q)
     if (stageId <= 3) {
@@ -127,6 +145,11 @@ export class StageAnimator {
     else if (stageId === 24) {
       this.animateSplashdown(duration);
     }
+    if (this.parts.sla?.userData.closedCover) {
+      this.parts.sla.userData.closedCover.visible = stageId < 10;
+      this.parts.sla.userData.petals.forEach(petal => { petal.visible = stageId >= 10; });
+    }
+    if (stageId < 10 && this.parts.lm) this.parts.lm.visible = false;
   }
 
   /* =========================================================================
@@ -305,7 +328,7 @@ export class StageAnimator {
       gsap.to(this.parts.sm.rotation, { x: 0, y: 0, z: 0, duration: duration });
     }
 
-    this.openSLAPetals(0.35, duration);
+    this.openSLAPetals(0, duration);
   }
 
   // Paso 2: Apertura completa del SLA y giro 180° del CSM
@@ -315,44 +338,36 @@ export class StageAnimator {
 
     this.hideEarlyStages();
     this.keepS4BandLMInBase(duration);
-    this.openSLAPetals(1.35, duration);
+    this.openSLAPetals(Math.PI / 4, duration);
 
-    // CSM gira 180° para mirar hacia el LM
-    const csmCenterY = 24.5;
-
-    if (this.parts.cm) {
-      gsap.to(this.parts.cm.position, {
-        x: 0,
-        y: csmCenterY - 1.15,
-        z: 0,
-        duration: duration,
-        ease: 'power2.inOut'
-      });
-      gsap.to(this.parts.cm.rotation, {
-        x: Math.PI,
-        y: 0,
-        z: 0,
-        duration: duration,
-        ease: 'power2.inOut'
-      });
-    }
-
-    if (this.parts.sm) {
-      gsap.to(this.parts.sm.position, {
-        x: 0,
-        y: csmCenterY + 1.15,
-        z: 0,
-        duration: duration,
-        ease: 'power2.inOut'
-      });
-      gsap.to(this.parts.sm.rotation, {
-        x: Math.PI,
-        y: 0,
-        z: 0,
-        duration: duration,
-        ease: 'power2.inOut'
-      });
-    }
+    // Un único ángulo y pivote para todo el CSM, sin alterar la unión CM–SM.
+    const cm = this.parts.cm;
+    const sm = this.parts.sm;
+    if (!cm || !sm) return;
+    // Comenzar en el punto final de Separación del CSM, incluso al saltar a esta etapa.
+    cm.position.copy(this.baseTransforms.cm.pos).add(new THREE.Vector3(0, 6, 0));
+    sm.position.copy(this.baseTransforms.sm.pos).add(new THREE.Vector3(0, 6, 0));
+    const startCenter = cm.position.clone().add(sm.position).multiplyScalar(0.5);
+    const targetCenter = new THREE.Vector3(0, 24.5, 0);
+    const cmOffset = cm.position.clone().sub(startCenter);
+    const smOffset = sm.position.clone().sub(startCenter);
+    const axis = new THREE.Vector3(1, 0, 0);
+    const updateCSM = () => {
+      const angle = cm.rotation.x;
+      const center = startCenter.clone().lerp(targetCenter, angle / Math.PI);
+      cm.position.copy(cmOffset).applyAxisAngle(axis, angle).add(center);
+      sm.position.copy(smOffset).applyAxisAngle(axis, angle).add(center);
+      sm.rotation.copy(cm.rotation);
+    };
+    gsap.to(cm.rotation, {
+      x: Math.PI,
+      y: 0,
+      z: 0,
+      duration,
+      ease: 'power2.inOut',
+      onUpdate: updateCSM,
+      onComplete: updateCSM
+    });
   }
 
   // Paso 3: Acoplamiento (Docking proa con proa)
@@ -362,7 +377,7 @@ export class StageAnimator {
 
     this.hideEarlyStages();
     this.keepS4BandLMInBase(duration);
-    this.openSLAPetals(1.4, duration);
+    this.setSLAPetalsOpen();
 
     // El CSM desciende hasta conectar exactamente su sonda en el puerto superior del LM
     const dockContactY = 15.80;
@@ -375,7 +390,6 @@ export class StageAnimator {
         duration: duration,
         ease: 'power1.inOut'
       });
-      gsap.to(this.parts.cm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
 
     if (this.parts.sm) {
@@ -386,7 +400,6 @@ export class StageAnimator {
         duration: duration,
         ease: 'power1.inOut'
       });
-      gsap.to(this.parts.sm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
   }
 
@@ -396,6 +409,8 @@ export class StageAnimator {
     if (!gsap) return;
 
     this.hideEarlyStages();
+
+    this.setSLAPetalsOpen();
 
     // S-IVB + SLA retroceden y se descartan
     if (this.parts.s4b) {
@@ -443,7 +458,6 @@ export class StageAnimator {
         duration: duration,
         ease: 'power2.out'
       });
-      gsap.to(this.parts.cm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
 
     if (this.parts.sm) {
@@ -454,7 +468,6 @@ export class StageAnimator {
         duration: duration,
         ease: 'power2.out'
       });
-      gsap.to(this.parts.sm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
   }
 
@@ -474,12 +487,10 @@ export class StageAnimator {
     if (this.parts.cm) {
       this.parts.cm.visible = true;
       gsap.to(this.parts.cm.position, { x: 0, y: comboY + 2.55, z: 0, duration: duration });
-      gsap.to(this.parts.cm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
     if (this.parts.sm) {
       this.parts.sm.visible = true;
       gsap.to(this.parts.sm.position, { x: 0, y: comboY + 4.78, z: 0, duration: duration });
-      gsap.to(this.parts.sm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
   }
 
@@ -501,12 +512,10 @@ export class StageAnimator {
     if (this.parts.cm) {
       this.parts.cm.visible = true;
       gsap.to(this.parts.cm.position, { x: 2.5, y: 18.0, z: -2.5, duration: duration });
-      gsap.to(this.parts.cm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
     if (this.parts.sm) {
       this.parts.sm.visible = true;
       gsap.to(this.parts.sm.position, { x: 2.5, y: 20.23, z: -2.5, duration: duration });
-      gsap.to(this.parts.sm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
     }
   }
 
@@ -519,8 +528,14 @@ export class StageAnimator {
 
     if (this.parts.lm) {
       this.parts.lm.visible = true;
-      gsap.to(this.parts.lm.position, { x: 0, y: 15.0, z: 0, duration: duration });
-      gsap.to(this.parts.lm.rotation, { x: 0, y: 0, z: 0, duration: duration });
+      if (this.currentStageIndex !== 16) {
+        gsap.to(this.parts.lm.position, { x: 0, y: 15.0, z: 0, duration: duration });
+      }
+      gsap.to(this.parts.lm.rotation, {
+        x: 0, y: 0, z: 0,
+        duration,
+        delay: this.currentStageIndex === 16 && duration > 0 ? 0.6 : 0
+      });
     }
   }
 
@@ -563,16 +578,32 @@ export class StageAnimator {
       gsap.to(this.parts.lm.position, { x: 0, y: 15.0, z: 0, duration: duration });
     }
 
-    if (this.parts.cm) {
-      this.parts.cm.visible = true;
-      gsap.to(this.parts.cm.position, { x: 0, y: 17.55, z: 0, duration: duration });
-      gsap.to(this.parts.cm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
-    }
-    if (this.parts.sm) {
-      this.parts.sm.visible = true;
-      gsap.to(this.parts.sm.position, { x: 0, y: 19.78, z: 0, duration: duration });
-      gsap.to(this.parts.sm.rotation, { x: Math.PI, y: 0, z: 0, duration: duration });
-    }
+    const cm = this.parts.cm;
+    const sm = this.parts.sm;
+    if (!cm || !sm) return;
+    cm.visible = true;
+    sm.visible = true;
+    const startCenter = cm.position.clone().add(sm.position).multiplyScalar(0.5);
+    const targetCenter = new THREE.Vector3(0, (17.55 + 19.78) / 2, 0);
+    const cmOffset = cm.position.clone().sub(startCenter);
+    const smOffset = sm.position.clone().sub(startCenter);
+    const axis = new THREE.Vector3(1, 0, 0);
+    const updateCSM = () => {
+      const angle = cm.rotation.x;
+      const center = startCenter.clone().lerp(targetCenter, angle / Math.PI);
+      cm.position.copy(cmOffset).applyAxisAngle(axis, angle).add(center);
+      sm.position.copy(smOffset).applyAxisAngle(axis, angle).add(center);
+      sm.rotation.copy(cm.rotation);
+    };
+    gsap.to(cm.rotation, {
+      x: Math.PI,
+      y: 0,
+      z: 0,
+      duration,
+      ease: 'power2.inOut',
+      onUpdate: updateCSM,
+      onComplete: updateCSM
+    });
   }
 
   // Inyección Trans-Tierra (TEI - CSM Solo)
@@ -636,7 +667,7 @@ export class StageAnimator {
       this.parts.cm.visible = true;
       gsap.to(this.parts.cm.position, { x: 0, y: 19.29, z: 0, duration: duration });
       gsap.to(this.parts.cm.rotation, {
-        x: Math.PI - 0.45,
+        x: -0.45,
         y: 0,
         z: 0,
         duration: duration,
@@ -670,7 +701,7 @@ export class StageAnimator {
       });
       gsap.to(this.parts.parachutes.position, {
         x: 0,
-        y: 22.8,
+        y: 18.73,
         z: 0,
         duration: duration
       });
@@ -696,23 +727,57 @@ export class StageAnimator {
    * HELPERS DE VISIBILIDAD Y PÉTALOS
    * ========================================================================= */
 
+  setSLAPetalsOpen() {
+    this.setSLAPetalAngle(Math.PI / 4);
+  }
+
+  setSLAPetalAngle(angle) {
+    this.parts.sla.userData.petals.forEach((petal, index) => {
+      const yaw = index * Math.PI / 2;
+      petal.rotation.order = 'YXZ';
+      petal.rotation.set(angle, yaw, 0);
+      const radial = 1.32 * (1 - Math.cos(angle));
+      petal.position.set(radial * Math.sin(yaw), -1.7 + 1.32 * Math.sin(angle), radial * Math.cos(yaw));
+    });
+  }
+
   openSLAPetals(angleRad, duration) {
     const gsap = window.gsap;
     if (!gsap || !this.parts.sla || !this.parts.sla.userData.petals) return;
 
-    this.parts.sla.userData.petals.forEach((petal) => {
+    this.parts.sla.userData.petals.forEach((petal, index) => {
+      const yaw = index * Math.PI / 2;
+      // Cada cuadrante apunta hacia +Z local: abrir sobre X, después orientar en Y.
+      petal.rotation.order = 'YXZ';
+      petal.rotation.y = yaw;
+      petal.rotation.z = 0;
+      const updateHinge = () => {
+        // Compensar el pivote central existente para girar desde el borde inferior.
+        const radial = 1.32 * (1 - Math.cos(petal.rotation.x));
+        petal.position.set(
+          radial * Math.sin(yaw),
+          -1.7 + 1.32 * Math.sin(petal.rotation.x),
+          radial * Math.cos(yaw)
+        );
+      };
+      gsap.killTweensOf(petal.rotation);
       gsap.to(petal.rotation, {
-        z: angleRad,
-        duration: duration,
-        ease: 'power2.out'
+        x: angleRad,
+        duration,
+        ease: 'power2.inOut',
+        onUpdate: updateHinge,
+        onComplete: updateHinge
       });
     });
   }
 
   resetSLAPetals(isClosed) {
-    if (!this.parts.sla || !this.parts.sla.userData.petals) return;
-    this.parts.sla.userData.petals.forEach((petal) => {
-      if (isClosed) petal.rotation.z = 0;
+    if (!isClosed || !this.parts.sla?.userData.petals) return;
+    this.parts.sla.userData.petals.forEach((petal, index) => {
+      window.gsap.killTweensOf(petal.rotation);
+      petal.rotation.order = 'YXZ';
+      petal.rotation.set(0, index * Math.PI / 2, 0);
+      petal.position.set(0, -1.7, 0);
     });
   }
 

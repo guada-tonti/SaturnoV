@@ -350,8 +350,15 @@ export class SceneManager {
     }
 
     // Rotación de reposo muy lenta y sutil cuando el usuario no interactúa
-    if (!this.isUserInteracting && !this.isCutawayActive && this.rocketRoot) {
+    if (!this.isUserInteracting && !this.isCutawayActive && !this.isVehicleTransitioning && this.rocketRoot) {
+      const pivotBefore = this.idleRotationPivot
+        ? this.rocketRoot.localToWorld(this.idleRotationPivot.clone())
+        : null;
       this.rocketRoot.rotation.y += this.idleRotationSpeed * (deltaTime * 60);
+      if (pivotBefore) {
+        const pivotAfter = this.rocketRoot.localToWorld(this.idleRotationPivot.clone());
+        this.rocketRoot.position.add(pivotBefore.sub(pivotAfter));
+      }
     }
 
     // Rotación del campo de estrellas imperceptible

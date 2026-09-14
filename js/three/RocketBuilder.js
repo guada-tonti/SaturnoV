@@ -707,6 +707,15 @@ export class RocketBuilder {
     const height = 3.4;
 
     group.userData.petals = [];
+    // Superficie continua del carenado cerrado, sin juntas entre cuadrantes.
+    const closedCover = new THREE.Mesh(
+      new THREE.CylinderGeometry(rTop, rBottom, height, 64, 4, true),
+      this.materials.rocketWhite
+    );
+    closedCover.castShadow = true;
+    closedCover.receiveShadow = true;
+    group.add(closedCover);
+    group.userData.closedCover = closedCover;
 
     // Creamos 4 pétalos separados montados en bisagras en la base para la cinemática de apertura
     const petalAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
@@ -1012,34 +1021,44 @@ export class RocketBuilder {
 
     const height = 4.0;
 
-    // Cubierta protectora de la cápsula (Boost Protective Cover)
-    const bpcGeo = new THREE.ConeGeometry(0.8, 0.6, 32);
-    const bpc = new THREE.Mesh(bpcGeo, this.materials.rocketWhite);
-    bpc.position.y = -height / 2 + 0.3;
-    group.add(bpc);
+    // Falda troncocónica del motor, encima de la torre reticular.
+    const skirt = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.30, 0.22, 32),
+      this.materials.rocketWhite
+    );
+    skirt.position.y = 0.19;
+    group.add(skirt);
 
-    // Torre reticular de 4 patas (Truss lattice tower)
-    const legGeo = new THREE.CylinderGeometry(0.025, 0.025, 2.2, 8);
+    // Cuatro patas convergentes y arriostramiento diagonal, sin anillos flotantes.
+    const beam = (start, end, radius) => {
+      const direction = end.clone().sub(start);
+      const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius, direction.length(), 8),
+        this.materials.rocketWhite
+      );
+      mesh.position.copy(start).add(end).multiplyScalar(0.5);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+      group.add(mesh);
+    };
+    const corner = (i, t) => {
+      const angle = i * Math.PI / 2 + Math.PI / 4;
+      const radius = 0.28 + (0.23 - 0.28) * t;
+      return new THREE.Vector3(Math.cos(angle) * radius, -1.9 + 1.98 * t, Math.sin(angle) * radius);
+    };
     for (let i = 0; i < 4; i++) {
-      const angle = (i * Math.PI) / 2 + Math.PI / 4;
-      const leg = new THREE.Mesh(legGeo, this.materials.rocketWhite);
-      leg.position.set(Math.cos(angle) * 0.28, -height / 2 + 1.4, Math.sin(angle) * 0.28);
-      group.add(leg);
-    }
-
-    // Travesaños horizontales de la torre
-    for (let h = 0; h < 3; h++) {
-      const ringGeo = new THREE.TorusGeometry(0.28, 0.015, 6, 16);
-      const ring = new THREE.Mesh(ringGeo, this.materials.rocketWhite);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = -height / 2 + 0.8 + h * 0.6;
-      group.add(ring);
+      beam(corner(i, 0), corner(i, 1), 0.018);
+      for (let bay = 0; bay < 3; bay++) {
+        const low = bay / 3;
+        const high = (bay + 1) / 3;
+        beam(corner(i, low), corner((i + 1) % 4, high), 0.010);
+        beam(corner((i + 1) % 4, low), corner(i, high), 0.010);
+      }
     }
 
     // Cohete de escape sólido principal
-    const motorGeo = new THREE.CylinderGeometry(0.18, 0.18, 1.4, 16);
+    const motorGeo = new THREE.CylinderGeometry(0.18, 0.18, 1.7, 24);
     const motor = new THREE.Mesh(motorGeo, this.materials.rocketWhite);
-    motor.position.y = height / 2 - 0.7;
+    motor.position.y = 1.15;
     group.add(motor);
 
     // 4 Toberas orientadas en ángulo hacia afuera
@@ -1054,9 +1073,9 @@ export class RocketBuilder {
     }
 
     // Cono de morro con aletas canard aerodinámicas
-    const noseGeo = new THREE.ConeGeometry(0.18, 0.6, 16);
+    const noseGeo = new THREE.CylinderGeometry(0.055, 0.18, 0.35, 24);
     const nose = new THREE.Mesh(noseGeo, this.materials.rocketWhite);
-    nose.position.y = height / 2 + 0.2;
+    nose.position.y = 2.175;
     group.add(nose);
 
     return group;
@@ -1110,10 +1129,14 @@ export class RocketBuilder {
       // Líneas de suspensión (Cables finos)
       const lineGeo = new THREE.BufferGeometry();
       const points = [];
+      // Las tres suspensiones convergen en el vértice del CM, compensando
+      // la posición y la inclinación propia de cada campana.
+      const attachment = new THREE.Vector3(-off.x, -3.5, -off.z)
+        .applyQuaternion(chuteGroup.quaternion.clone().invert());
       for (let l = 0; l < 8; l++) {
         const ang = (l * Math.PI * 2) / 8;
         points.push(Math.cos(ang) * 1.5, 0, Math.sin(ang) * 1.5);
-        points.push(-off.x * 0.4, -3.5, -off.z * 0.4);
+        points.push(attachment.x, attachment.y, attachment.z);
       }
       lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
       const lineMat = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.6 });

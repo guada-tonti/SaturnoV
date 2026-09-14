@@ -25,100 +25,63 @@ export class CameraChoreographer {
    * Auto-framing matemático según los componentes activos de la etapa
    */
   autoFrameStage(stageData, duration = 1.6) {
+    const frame = this.frameForStage(stageData);
+    this.sceneManager.idleRotationPivot = frame.pivot;
+    this.moveTo(frame.position, frame.target, duration);
+  }
+
+  frameForStage(stageData) {
     this.currentStageData = stageData;
-    const activePartKeys = stageData.activeParts || ['s1c', 's2', 's4b', 'sla', 'lm', 'sm', 'cm', 'les'];
-    this.currentActiveParts = activePartKeys;
-
-    // 1. Calcular el Bounding Box 3D de todos los componentes activos
-    const box = this.computeActiveBoundingBox(activePartKeys);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-
-    // Medidas mínimas de seguridad
-    const height = Math.max(size.y, 2.0);
-    const width = Math.max(size.x, size.z, 2.0);
-
-    // 2. Calcular el área visual real disponible entre paneles UI
-    const windowW = window.innerWidth;
-    const windowH = window.innerHeight;
-
-    // Panel izquierdo (telemetría): ~380px + 32px margen = 412px
-    // Panel derecho (cronología): ~280px + 32px margen = 312px
-    const isDesktop = windowW >= 1024;
-    const leftPanelW = isDesktop ? 412 : 0;
-    const rightPanelW = isDesktop ? 312 : 0;
-    const topMargin = 74;
-    const bottomMargin = 40;
-
-    const availW = Math.max(windowW - leftPanelW - rightPanelW, windowW * 0.45);
-    const availH = Math.max(windowH - topMargin - bottomMargin, 300);
-
-    // Centro óptico entre paneles UI
-    const centerShiftPx = (leftPanelW - rightPanelW) / 2; // ~50px a la derecha en desktop
-
-    // 3. Trigonometría de la cámara para que entre completo con un 12-15% de margen
-    const fovRad = (this.camera.fov * Math.PI) / 180;
-    const tanHalfFovY = Math.tan(fovRad / 2);
-    const tanHalfFovX = tanHalfFovY * (availW / availH);
-
-    // Distancias necesarias para cubrir alto y ancho
-    const distY = (height / 2) / tanHalfFovY;
-    const distX = (width / 2) / tanHalfFovX;
-
-    // Distancia final con margen del 15% (1.15)
-    const marginFactor = 1.15;
-    const targetDist = Math.max(distY, distX) * marginFactor;
-
-    // 4. Desplazamiento horizontal para centrar el cohete en el espacio libre
-    // Un shift en X en el target centra visualmente el cohete en el área disponible
-    const normalizedShift = centerShiftPx / (availW / 2);
-    const targetOffsetX = -(targetDist * tanHalfFovX * normalizedShift * 0.5);
-
-    // 5. Ángulo cinemático de cámara (azimut ~22°, elevación suave ~6-8°)
-    const azimuth = 0.38; // ~22 grados
-    const elevation = 0.12; // ~7 grados
-
-    const targetLookAt = new THREE.Vector3(
-      targetOffsetX * 0.3,
-      center.y,
-      0
-    );
-
-    const targetPos = new THREE.Vector3(
-      targetOffsetX * 0.3 + targetDist * Math.sin(azimuth) * Math.cos(elevation),
-      center.y + targetDist * Math.sin(elevation),
-      targetDist * Math.cos(azimuth) * Math.cos(elevation)
-    );
-
-    // 6. Transición suave con GSAP
-    this.moveTo(targetPos, targetLookAt, duration);
+    this.currentActiveParts = stageData.activeParts || Object.keys(this.parts);
+    const box = this.computeActiveBoundingBox(this.currentActiveParts);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const width = window.innerWidth, height = window.innerHeight;
+    const timelinePanel = document.getElementById('timeline-container');
+    const telemetryPanel = document.getElementById('telemetry-container');
+    const left = (timelinePanel?.hidden ? document.getElementById('inspector-container') : timelinePanel)?.getBoundingClientRect();
+    const right = (telemetryPanel?.hidden ? document.getElementById('component-detail-container') : telemetryPanel)?.getBoundingClientRect();
+    const availableWidth = width >= 1024 && left && right
+      ? Math.max(160, right.left - left.right - 32) : width * 0.9;
+    const availableHeight = Math.max(200, height - 150);
+    const tanY = Math.tan(this.camera.fov * Math.PI / 360);
+    const tanX = tanY * this.camera.aspect;
+    const direction = this.camera.position.clone().sub(this.controls.target).normalize();
+    if (direction.lengthSq() === 0) direction.set(0.37, 0.12, 0.92).normalize();
+    // Mantener el ángulo elegido; sólo desplazar el centro y ajustar la distancia necesaria.
+    const distance = Math.max(
+      Math.max(size.y, 2) / (2 * tanY * availableHeight / height),
+      Math.max(size.x, size.z, 2) / (2 * tanX * availableWidth / width)
+    ) * 1.15 + size.z * 0.5;
+    return {
+      position: center.clone().addScaledVector(direction, distance),
+      target: center,
+      pivot: this.sceneManager.rocketRoot.worldToLocal(center.clone())
+    };
   }
 
   computeActiveBoundingBox(activePartKeys) {
+    this.sceneManager.rocketRoot.updateMatrixWorld(true);
     const box = new THREE.Box3();
-    let hasObjects = false;
-
-    activePartKeys.forEach((key) => {
-      const part = this.parts[key];
-      if (part && part.visible) {
-        // Expandir por la caja del objeto
-        const partBox = new THREE.Box3().setFromObject(part);
-        if (!partBox.isEmpty()) {
-          box.union(partBox);
-          hasObjects = true;
-        }
-      }
+    activePartKeys.forEach(key => {
+      const part = key === 'lm_ascent' ? this.parts.lm?.userData.ascentStage
+        : key === 'sla_panels' ? this.parts.sla : this.parts[key];
+      if (!part) return;
+      for (let parent = part; parent; parent = parent.parent) if (!parent.visible) return;
+      part.traverseVisible(object => {
+        if (!object.geometry) return;
+        if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+        box.union(object.geometry.boundingBox.clone().applyMatrix4(object.matrixWorld));
+      });
     });
-
-    // Si por alguna razón está vacío, usar valores por defecto del Saturn V
-    if (!hasObjects || box.isEmpty()) {
-      box.min.set(-2.5, -24.2, -2.5);
-      box.max.set(2.5, 24.1, 2.5);
-    }
-
+    if (box.isEmpty()) { box.min.set(-2.5, -24.2, -2.5); box.max.set(2.5, 24.1, 2.5); }
     return box;
+  }
+
+  cancel() {
+    window.gsap?.killTweensOf([this.camera.position, this.controls.target, this.camera]);
+    this.sceneManager.targetZoomDistance = null;
+    this.isAnimating = false;
   }
 
   /**
@@ -130,7 +93,8 @@ export class CameraChoreographer {
     }
 
     const gsap = window.gsap;
-    if (!gsap) {
+    if (!gsap || duration === 0) {
+      this.cancel();
       this.camera.position.copy(targetPos);
       this.controls.target.copy(targetLookAt);
       this.controls.update();

@@ -13,10 +13,10 @@ export class EffectsManager {
   constructor(scene) {
     this.scene = scene;
     this.effects = {};
+    this.attachments = [];
     this.initFlameMaterials();
     this.createExhaustPlumes();
     this.createPlasmaEnvelope();
-    this.createRCSPuffs();
   }
 
   initFlameMaterials() {
@@ -176,24 +176,13 @@ export class EffectsManager {
     this.effects.plasmaEnvelope = plasmaGroup;
   }
 
-  createRCSPuffs() {
-    const rcsGroup = new THREE.Group();
-    rcsGroup.name = 'RCS_Puffs';
-
-    for (let i = 0; i < 6; i++) {
-      const puffGeo = new THREE.ConeGeometry(0.15, 0.9, 8);
-      const puff = new THREE.Mesh(puffGeo, this.rcsMaterial);
-      puff.position.set(Math.cos(i) * 1.2, 0, Math.sin(i) * 1.2);
-      puff.rotation.set(Math.random(), Math.random(), Math.random());
-      rcsGroup.add(puff);
-    }
-
-    rcsGroup.visible = false;
-    this.scene.add(rcsGroup);
-    this.effects.rcsPuffs = rcsGroup;
-  }
 
   update(deltaTime, elapsed) {
+    this.attachments.forEach(({ effect, part, offset }) => {
+      part.updateWorldMatrix(true, false);
+      effect.position.copy(offset).applyMatrix4(part.matrixWorld);
+      part.getWorldQuaternion(effect.quaternion);
+    });
     // Micro-oscilación de las llamas para dinamismo realista
     if (this.effects.f1Plume && this.effects.f1Plume.visible) {
       const flicker = 1.0 + Math.sin(elapsed * 45) * 0.08 + Math.cos(elapsed * 70) * 0.05;
@@ -212,6 +201,7 @@ export class EffectsManager {
   }
 
   setStageEffects(stageData, rocketParts) {
+    this.attachments = [];
     // Apagar todos los efectos por defecto
     if (this.effects.f1Plume) this.effects.f1Plume.visible = false;
     if (this.effects.j2Plume) this.effects.j2Plume.visible = false;
@@ -226,8 +216,7 @@ export class EffectsManager {
     if (eff.ignition && (stageData.id === 2 || stageData.id === 3)) {
       if (this.effects.f1Plume && rocketParts.s1c) {
         this.effects.f1Plume.visible = true;
-        this.effects.f1Plume.position.copy(rocketParts.s1c.position);
-        this.effects.f1Plume.position.y -= 10.6;
+        this.attachments.push({ effect: this.effects.f1Plume, part: rocketParts.s1c, offset: new THREE.Vector3(0, -10.6, 0) });
       }
     }
 
@@ -236,14 +225,11 @@ export class EffectsManager {
       if (this.effects.j2Plume) {
         this.effects.j2Plume.visible = true;
         if (stageData.id === 5 && rocketParts.s2) {
-          this.effects.j2Plume.position.copy(rocketParts.s2.position);
-          this.effects.j2Plume.position.y -= 5.65;
+          this.attachments.push({ effect: this.effects.j2Plume, part: rocketParts.s2, offset: new THREE.Vector3(0, -5.65, 0) });
         } else if (stageData.id === 8 && rocketParts.s4b) {
-          this.effects.j2Plume.position.copy(rocketParts.s4b.position);
-          this.effects.j2Plume.position.y -= 4.25;
+          this.attachments.push({ effect: this.effects.j2Plume, part: rocketParts.s4b, offset: new THREE.Vector3(0, -4.25, 0) });
         } else if (rocketParts.sm) {
-          this.effects.j2Plume.position.copy(rocketParts.sm.position);
-          this.effects.j2Plume.position.y -= 2.7;
+          this.attachments.push({ effect: this.effects.j2Plume, part: rocketParts.sm, offset: new THREE.Vector3(0, -2.7, 0) });
         }
       }
     }
@@ -252,16 +238,10 @@ export class EffectsManager {
     if (eff.plasmaGlow && rocketParts.cm) {
       if (this.effects.plasmaEnvelope) {
         this.effects.plasmaEnvelope.visible = true;
-        this.effects.plasmaEnvelope.position.copy(rocketParts.cm.position);
+        this.attachments.push({ effect: this.effects.plasmaEnvelope, part: rocketParts.cm, offset: new THREE.Vector3() });
       }
     }
 
-    // Disparos RCS
-    if (eff.rcsPuffs) {
-      if (this.effects.rcsPuffs && rocketParts.sm) {
-        this.effects.rcsPuffs.visible = true;
-        this.effects.rcsPuffs.position.copy(rocketParts.sm.position);
-      }
-    }
+
   }
 }
